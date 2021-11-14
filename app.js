@@ -1,7 +1,29 @@
 const Joi = require('joi');
-const express = require('express')
+const morgan = require('morgan');
+const config = require('config');
+const debug = require('debug')('app:init');
+const express = require('express');
 const app = express();
+// const logger = require('./logger')
 
+app.use(express.json());
+app.use(express.urlencoded({
+    extended: true
+}))
+// middleware para usar archivos estaticos
+app.use(express.static('public'));
+// configuracion de entornos
+console.log('Aplication: ' + config.get('name-proyect'))
+console.log('Config DB: ' + config.get('config-DB.host'))
+// middleware de terceros ==> MORGAN
+if (app.get('env') === 'development') {
+    app.use(morgan('tiny'));
+    debug('Morgan habilitado')
+}
+
+// Work in the Database
+debug('Conceting with MongoDB')
+// app.use(logger);
 const users = [
     {
         id: 1,
@@ -26,7 +48,6 @@ const users = [
     }
 ]
 
-
 /* Function */
 const existUser = (id) => users.find(user => user.id === Number(id))
 
@@ -46,8 +67,6 @@ const validateUser = (_name, _user, _email, _year) => {
         year: _year
     });
 }
-
-app.use(express.json())
 
 app.get('/', (req, res) => {
     res.send('Hola mundo desde express..');
@@ -69,6 +88,14 @@ app.get('/api/users/:id', (req, res) => {
 
 /* Peticiones HTTP POST */
 app.post('/api/users', (req, res) => {
+
+/*     
+    let body = req.body;
+    console.log(body.name, body.user, body.email, body.year);
+    res.json({
+        body
+    }) 
+*/
     /* Return true or false in case the error */
     const {error, value} = validateUser(req.body.name, req.body.user, req.body.email, req.body.year)
 
